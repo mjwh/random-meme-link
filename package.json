@@ -1,0 +1,26 @@
+{
+  "name": "random-meme-link",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "swc src --out-dir dist",
+    "start": "node dist/src/index.js",
+    "serve": "swc src --out-dir dist && node dist/src/index.js",
+    "dev": "nodemon --watch src --ext ts --exec 'npm run build && npm start'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@swc/cli": "^0.3.12",
+    "@swc/core": "^1.5.6",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.12",
+    "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "typescript": "^5.4.5"
+  }
+}
