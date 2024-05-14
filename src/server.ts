@@ -11,10 +11,18 @@ export const server = async () => {
 
   app.get('/random-meme', async (req, res) => {
     try {
-      const response = await fetch('https://meme-api.com/gimme');
+      const searchTerm = req.query.q;
+      const endpoint = 'https://meme-api.com/gimme'
+      const response = await fetch(searchTerm ? `${endpoint}/${searchTerm}` : endpoint);
       const data = await response.json();
-      res.set('Content-Type', 'text/plain')
-      res.send(data.url);
+
+      if(!data.url) { // If no meme found
+        const response = await fetch(endpoint);
+        const data = await response.json();
+        return res.send('<img src="' + data.url + '" height="350px" />');
+      }
+
+      res.send('<img src="' + data.url + '" height="350px" />');
     } catch (error) {
       console.error('Error:', error);
       res.status(500).send('An error occurred while fetching the meme.');
