@@ -1,9 +1,20 @@
-// server.ts
-import { createServer } from "http";
 import express from "express";
+import { pipeline } from 'stream';
+import { createServer } from 'http';
+import { promisify } from 'util';
+
+const pipelineAsync = promisify(pipeline);
+
+const fetchMeme = async (searchTerm) => {
+  const endpoint = 'https://meme-api.com/gimme';
+  const response = await fetch(searchTerm ? `${endpoint}/${searchTerm}` : endpoint);
+  const data = await response.json();
+  return data.url ? data : await fetchMeme();
+};
 
 export const server = async () => {
   const app = express();
+  app.use(express.json());
 
   app.get("/", (req, res) => {
     res.send("Hello World!");
@@ -11,18 +22,13 @@ export const server = async () => {
 
   app.get('/random-meme', async (req, res) => {
     try {
-      const searchTerm = req.query.q;
-      const endpoint = 'https://meme-api.com/gimme'
-      const response = await fetch(searchTerm ? `${endpoint}/${searchTerm}` : endpoint);
-      const data = await response.json();
-
-      if(!data.url) { // If no meme found
-        const response = await fetch(endpoint);
-        const data = await response.json();
-        return res.send('<img src="' + data.url + '" height="350px" />');
+      const data = await fetchMeme(req.query.q);
+      const imageResponse = await fetch(data.url);
+      if (!imageResponse.ok) {
+        throw new Error('An error occurred while fetching the meme.');
       }
-
-      res.send('<img src="' + data.url + '" height="350px" />');
+      res.setHeader('Content-Type', 'image/jpeg');
+      await pipelineAsync(imageResponse.body, res);
     } catch (error) {
       console.error('Error:', error);
       res.status(500).send('An error occurred while fetching the meme.');
@@ -30,7 +36,6 @@ export const server = async () => {
   });
 
   const server = createServer(app);
-
   const port = process.env.PORT || 3000;
 
   server.listen(port, () => {
