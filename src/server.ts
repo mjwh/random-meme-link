@@ -5,11 +5,16 @@ import { promisify } from 'util';
 
 const pipelineAsync = promisify(pipeline);
 
-const fetchMeme = async (searchTerm) => {
+const fetchRedditMeme = async (searchTerm:any) => {
   const endpoint = 'https://meme-api.com/gimme';
   const response = await fetch(searchTerm ? `${endpoint}/${searchTerm}` : endpoint);
   const data = await response.json();
-  return data.url ? data : await fetchMeme();
+  return data.url ? data : await fetchRedditMeme();
+};
+
+const fetchRandomMeme = async (searchTerm?: any) => {
+  const endpoint = 'https://img.randme.me/';
+  return await fetch(`${endpoint}?${Date.now()}`);
 };
 
 export const server = async () => {
@@ -22,7 +27,7 @@ export const server = async () => {
 
   app.get('/random-meme', async (req, res) => {
     try {
-      const data = await fetchMeme(req.query.q);
+      const data = await fetchRandomMeme(req.query.q);
       const imageResponse = await fetch(data.url);
       if (!imageResponse.ok) {
         throw new Error('An error occurred while fetching the meme.');
